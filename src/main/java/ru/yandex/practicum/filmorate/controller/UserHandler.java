@@ -18,35 +18,25 @@ public class UserHandler {
     private long generatedId = 0;
 
     public User create(@Valid User user) {
-        if (!isNoSpaceInLogin(user)) {
-            log.trace("В create() вернулся false - в логине есть пробел");
-            throw new InvalidLoginException("Логин не может содержать пробелы");
+        if (isNoSpaceInLogin(user)) {
+            ifUserNameBlank(user);
+            user.setId(++generatedId);
+            userStorage.put(user.getId(), user);
+            log.debug("Объект пользователя добавлен в хранилище");
         }
-        if (ifUserNameBlank(user)) {
-            log.trace("Имя пользователя пустое, теперь имя пользователя соответствует Логину: {}", user.getLogin());
-            user.setName(user.getLogin());
-        }
-        user.setId(++generatedId);
-        userStorage.put(user.getId(), user);
-        log.debug("Объект пользователя добавлен в хранилище");
         return user;
     }
 
     public User update(@Valid User user) {
-        if (!isNoSpaceInLogin(user)) {
-            log.trace("В update() вернулся false - в логине есть пробел");
-            throw new InvalidLoginException("Логин не может содержать пробелы");
+        if (isNoSpaceInLogin(user)) {
+            ifUserNameBlank(user);
+            if (!userStorage.containsKey(user.getId()) | user.getId() == null) {
+                log.debug("Запрашиваемый при обновлении пользователь не найден в хранилище");
+                throw new DataNotFoundException("Запрашиваемый пользователь: " + user + " не найден");
+            }
+            userStorage.put(user.getId(), user);
+            log.debug("Пользователь найден и обновлен в хранилище");
         }
-        if (ifUserNameBlank(user)) {
-            log.trace("Имя пользователя пустое, теперь имя пользователя соответствует Логину: {}", user.getLogin());
-            user.setName(user.getLogin());
-        }
-        if (!userStorage.containsKey(user.getId()) | user.getId() == null) {
-            log.debug("Запрашиваемый при обновлении пользователь не найден в хранилище");
-            throw new DataNotFoundException("Запрашиваемый пользователь: " + user + " не найден");
-        }
-        userStorage.put(user.getId(), user);
-        log.debug("Пользователь найден и обновлен в хранилище");
         return user;
     }
 
@@ -59,16 +49,20 @@ public class UserHandler {
         log.trace("Начинаем проверку на наличие пробелов в логине пользователя");
         String[] words = user.getLogin().split(" ");
         if (words.length > 1) {
-            log.trace("Пробелы в Логине обнаружены. Возвращаем false");
-            return false;
+            log.trace("Пробелы в Логине обнаружены");
+            throw new InvalidLoginException("Логин не может содержать пробелы");
+
         }
-        log.trace("Пробелы в Логине не обнаружены. Возвращаем true");
+        log.trace("Пробелы в Логине не обнаружены");
         return true;
     }
 
-    private boolean ifUserNameBlank(User user) {
+    private void ifUserNameBlank(User user) {
         log.trace("Начинаем проверку на отсутствие имени пользователя");
-        return user.getName() == null || user.getName().isEmpty() || user.getName().isBlank();
+        if (user.getName() == null || user.getName().isEmpty() || user.getName().isBlank()) {
+            log.trace("Имя пользователя пустое, теперь имя пользователя соответствует Логину: {}", user.getLogin());
+            user.setName(user.getLogin());
+        }
     }
 
     //Метод для целей тестирования

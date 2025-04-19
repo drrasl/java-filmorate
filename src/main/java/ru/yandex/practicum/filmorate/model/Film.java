@@ -19,15 +19,14 @@ public class Film {
     @NotBlank
     private String name;
 
-    @NotBlank
-    @Size(min = 1, max = 200)
+    @Size(max = 200)
     private String description;
 
     @NotNull
     private LocalDate releaseDate;
 
+    @NotNull(message = "Длительность фильма должна быть задана")
     @Positive
-    @Min(1)
     private Long duration;
 
 }
