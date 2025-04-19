@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "name1",
+    "description": "discription1",
+    "releaseDate": "2012-03-25",
+    "duration": 100
+  },
+  {
+    "id": 2,
+    "name": "name2",
+    "description": "discription2",
+    "releaseDate": "2013-03-25",
+    "duration": 90
+  }
+]
