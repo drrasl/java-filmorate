@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "login": "dolore",
+    "name": "Nick Name",
+    "email": "mail@mail.ru",
+    "birthday": "1946-08-20"
+  },
+  {
+    "id": 2,
+    "login": "kapatych",
+    "name": "Kapatych Power",
+    "email": "mail@gmail.com",
+    "birthday": "1996-08-20"
+  }
+]
