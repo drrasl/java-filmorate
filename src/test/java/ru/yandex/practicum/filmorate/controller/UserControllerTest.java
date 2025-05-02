@@ -45,7 +45,7 @@ class UserControllerTest {
     @AfterEach
     void clear() {
         log.trace("Очистка хранилища пользователей после теста");
-        userController.getUserHandler().clear();
+        userController.getUserService().clear();
     }
 
     @Test

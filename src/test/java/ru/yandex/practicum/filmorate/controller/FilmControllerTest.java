@@ -45,7 +45,7 @@ class FilmControllerTest {
     @AfterEach
     void clear() {
         log.trace("Очистка хранилища фильмов после теста");
-        filmController.getFilmHandler().clear();
+        filmController.getFilmService().clear();
     }
 
     @Test
