@@ -1,22 +1,16 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
 
 @Slf4j
-@RequiredArgsConstructor
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-
-    private final UserStorage inMemoryUserStorage;
 
     private final Map<Long, Film> filmStorage = new HashMap<>();
     private final Map<Long, Set<Long>> likeStorage = new HashMap<>(); // <Id фильма, Сет из айди пользователей>
@@ -68,12 +62,17 @@ public class InMemoryFilmStorage implements FilmStorage {
         generatedId = 0;
     }
 
+    @Override
+    public Film getFilmById(Long filmId) {
+        log.debug("Возвращаем фильм по его Id");
+        return filmStorage.get(filmId);
+    }
+
     //Ниже приведена логика работы с фильмами и лайками.
     //Предлагается всегда возвращать айди пользователя, кто поставил лайк. Тогда не будет путаницы, что за айди вернулся.
 
     @Override
     public Long addLikeToFilm(Long filmId, Long userId) {
-        validationOfFilmAndUser(filmId, userId);
         log.trace("Добавляем фильму с Id {} в список лайков пользователя с Id {}", filmId, userId);
         if (!likeStorage.containsKey(filmId)) {
             log.debug("Фильма с Id {} еще нет в базе лайков: создадим список пользователей, кто поставил лайк", filmId);
@@ -99,7 +98,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Long removeLikeFromFilm(Long filmId, Long userId) {
-        validationOfFilmAndUser(filmId, userId);
         log.trace("Удаляем фильму с Id {} лайк из списка лайков от пользователя с Id {}", filmId, userId);
         if (!likeStorage.containsKey(filmId)) {
             log.debug("У фильма с Id {} еще нет лайков, удаление лайка не возможно", filmId);
@@ -131,19 +129,5 @@ public class InMemoryFilmStorage implements FilmStorage {
                 )
                 .limit(count)
                 .toList();
-    }
-
-    private void validationOfFilmAndUser(Long filmId, Long userId) {
-        List<User> users = inMemoryUserStorage.getAll();
-        User userWithRequestedId = users.stream()
-                .filter(Objects::nonNull)
-                .filter(user -> user.getId() == userId)
-                .findFirst()
-                .orElseThrow(() -> new DataNotFoundException("Пользователь с Id: " + userId + " не найден"));
-        log.trace("Пользователь с Id {} есть в списке пользователей", userWithRequestedId);
-        if (!filmStorage.containsKey(filmId)) {
-            log.debug("Фильма с указанным Id {} не найдено", filmId);
-            throw new DataNotFoundException("Фильм с Id: " + filmId + " не найден");
-        }
     }
 }

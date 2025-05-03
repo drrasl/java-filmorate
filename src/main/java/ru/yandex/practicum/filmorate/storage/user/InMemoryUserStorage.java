@@ -63,27 +63,52 @@ public class InMemoryUserStorage implements UserStorage {
         generatedId = 0;
     }
 
+    @Override
+    public User getUserById(Long userId) {
+        log.debug("Возвращаем пользователя по его Id");
+        return userStorage.get(userId);
+    }
+
     //Ниже прописана логика по работе с друзьями
 
     @Override
     public Long addToFriends(Long userId, Long friendId) {
         validationOfUserAndFriend(userId, friendId);
-        log.trace("Добавляем пользователю с Id {} в список друзей пользователя с Id {}", userId, friendId);
+        log.trace("Добавляем пользователю с userId {} в список друзей пользователя с friendId {}", userId, friendId);
         if (!friendsStorage.containsKey(userId)) {
-            log.debug("Пользователя Id {} еще нет в базе друзей: создадим список друзей и добавим в базу", userId);
-            log.trace("Создаем Set<Long> и добавим туда Id {} ", friendId);
+            log.debug("Пользователя userId {} еще нет в базе друзей: создадим список друзей и добавим в базу", userId);
+            log.trace("Создаем Set<Long> и добавим туда friendId {} ", friendId);
             Set<Long> userFriends = new HashSet<>();
             userFriends.add(friendId);
-            log.trace("Добавляем пользователя c Id {} в хранилище друзей", userId);
+            log.trace("Добавляем пользователя c userId {} в хранилище друзей", userId);
             friendsStorage.put(userId, userFriends);
         } else {
-            log.debug("Пользователь с Id {} есть в базе друзей: выберем его и добавим ему нового друга", userId);
+            log.debug("Пользователь с userId {} есть в базе друзей: выберем его и добавим ему нового друга", userId);
             Set<Long> userFriends = friendsStorage.get(userId);
             if (!userFriends.contains(friendId)) {
-                log.trace("Добавили пользователю с Id {} нового  друга с Id {} ", userId, friendId);
+                log.trace("Добавили пользователю с userId {} нового  друга с friendId {} ", userId, friendId);
                 userFriends.add(friendId);
             } else {
-                throw new DuplicatedDataException("Друг с Id: " + friendId + " уже есть в друзьях у Id: " + userId);
+                throw new DuplicatedDataException("Друг с friendId: " + friendId + " уже есть в друзьях у userId: " + userId);
+            }
+        }
+        log.trace("Выполняем операцию зеркально: Добавляем другу с friendId {} в список друзей пользователя " +
+                "с userId {}", friendId, userId);
+        if (!friendsStorage.containsKey(friendId)) {
+            log.debug("Пользователя friendId {} еще нет в базе друзей: создадим список друзей и добавим в базу", friendId);
+            log.trace("Создаем Set<Long> и добавим туда userId {} ", userId);
+            Set<Long> userFriends = new HashSet<>();
+            userFriends.add(userId);
+            log.trace("Добавляем пользователя c friendId {} в хранилище друзей", friendId);
+            friendsStorage.put(friendId, userFriends);
+        } else {
+            log.debug("Пользователь с friendId {} есть в базе друзей: выберем его и добавим ему нового друга", friendId);
+            Set<Long> userFriends = friendsStorage.get(friendId);
+            if (!userFriends.contains(userId)) {
+                log.trace("Добавили пользователю с friendId {} нового  друга с userId {} ", friendId, userId);
+                userFriends.add(userId);
+            } else {
+                throw new DuplicatedDataException("Друг с userId: " + userId + " уже есть в друзьях у friendId: " + friendId);
             }
         }
         return userId;
@@ -92,17 +117,30 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Long removeFromFriends(Long userId, Long friendId) {
         validationOfUserAndFriend(userId, friendId);
-        log.trace("Удаляем друга с Id {} из списка друзей пользователя Id {}", friendId, userId);
+        log.trace("Удаляем друга с friendId {} из списка друзей пользователя userId {}", friendId, userId);
         if (!friendsStorage.containsKey(userId)) {
-            log.debug("У пользователя Id {} еще нет друзей, удаление не возможно", userId);
+            log.debug("У пользователя userId {} еще нет друзей, удаление не возможно", userId);
         } else {
-            log.debug("Пользователь с Id {} есть в базе друзей: выберем его и удалим его друга", userId);
+            log.debug("Пользователь с userId {} есть в базе друзей: выберем его и удалим его друга", userId);
             Set<Long> userFriends = friendsStorage.get(userId);
             if (userFriends.contains(friendId)) {
-                log.trace("Удаляем друга с Id {} из друзей пользователя Id {} ", friendId, userId);
+                log.trace("Удаляем друга с friendId {} из друзей пользователя userId {} ", friendId, userId);
                 userFriends.remove(friendId);
             } else {
-                log.trace("У пользователя Id {} нет друга Id {}, а значит и удалять нечего", userId, friendId);
+                log.trace("У пользователя userId {} нет друга friendId {}, а значит и удалять нечего", userId, friendId);
+            }
+        }
+        log.trace("Выполняем операцию зеркально: Удаляем друга с userId {} из списка друзей пользователя friendId {}", userId, friendId);
+        if (!friendsStorage.containsKey(friendId)) {
+            log.debug("У пользователя friendId {} еще нет друзей, удаление не возможно", friendId);
+        } else {
+            log.debug("Пользователь с friendId {} есть в базе друзей: выберем его и удалим его друга", friendId);
+            Set<Long> userFriends = friendsStorage.get(friendId);
+            if (userFriends.contains(userId)) {
+                log.trace("Удаляем друга с userId {} из друзей пользователя friendId {} ", userId, friendId);
+                userFriends.remove(userId);
+            } else {
+                log.trace("У пользователя friendId {} нет друга userId {}, а значит и удалять нечего", friendId, userId);
             }
         }
         return userId;
@@ -135,16 +173,12 @@ public class InMemoryUserStorage implements UserStorage {
         }
         Set<Long> userFriends = friendsStorage.get(userId);
         Set<Long> otherUserFriends = friendsStorage.get(otherId);
-        Set<User> friendsOfUser = userFriends.stream()
+        userFriends.retainAll(otherUserFriends);
+        Set<User> commonFriendsOfUser = userFriends.stream()
                 .filter(Objects::nonNull)
                 .map(userStorage::get)
                 .collect(Collectors.toSet());
-        Set<User> friendsOfOtherUser = otherUserFriends.stream()
-                .filter(Objects::nonNull)
-                .map(userStorage::get)
-                .collect(Collectors.toSet());
-        friendsOfUser.retainAll(friendsOfOtherUser);
-        return new ArrayList<>(friendsOfUser);
+        return new ArrayList<>(commonFriendsOfUser);
     }
 
     private void validationOfUserAndFriend(Long userId, Long friendId) {

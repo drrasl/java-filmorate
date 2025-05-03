@@ -77,16 +77,12 @@ public class UserService {
     public Long addToFriends(Long userId, Long friendId) {
         log.trace("Начинаем добавление друзей пользователя в хранилище друзей");
         inMemoryUserStorage.addToFriends(userId, friendId);
-        log.trace("Начинаем добавление пользователя в список друзей друга, то есть наоборот");
-        inMemoryUserStorage.addToFriends(friendId, userId);
         return userId;
     }
 
     public Long removeFromFriends(Long userId, Long friendId) {
         log.trace("Начинаем удаление друга пользователя в хранилище друзей");
         inMemoryUserStorage.removeFromFriends(userId, friendId);
-        log.trace("Начинаем удаление пользователя из хранилища друзей друга, то есть наоборот");
-        inMemoryUserStorage.removeFromFriends(friendId, userId);
         return userId;
     }
 
