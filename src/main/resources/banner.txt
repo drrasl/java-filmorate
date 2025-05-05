@@ -1,0 +1,8 @@
+${AnsiColor.RED}  _____ ${AnsiColor.DEFAULT}           _
+${AnsiColor.RED} / ____|${AnsiColor.DEFAULT}          (_)
+${AnsiColor.RED}| (___  ${AnsiColor.DEFAULT}_ __  _ __ _ _ __   __ _
+${AnsiColor.RED} \___ \${AnsiColor.DEFAULT}| '_ \| '__| | '_ \ / _` |
+${AnsiColor.RED} ____) |${AnsiColor.DEFAULT} |_) | |  | | | | | (_| |
+${AnsiColor.RED}|_____/${AnsiColor.DEFAULT}| .__/|_|  |_|_| |_|\__, |
+${AnsiColor.RED}       ${AnsiColor.DEFAULT}| |                  __/ |
+${AnsiColor.RED}       ${AnsiColor.DEFAULT}|_|                 |___/
