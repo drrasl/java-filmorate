@@ -29,4 +29,7 @@ public class Film {
     @Positive
     private Long duration;
 
+    // Скрыл, иначе падают тесты. Скорее всего в следующем спринте будем дорабатывать классы
+//    @NotNull
+//    private Integer ratingOfFilmByMpaId;
 }
