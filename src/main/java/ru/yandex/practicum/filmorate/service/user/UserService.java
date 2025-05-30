@@ -1,11 +1,15 @@
 package ru.yandex.practicum.filmorate.service.user;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exceptions.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InvalidLoginException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.dal.user.UserStorage;
 
 import java.util.List;
 
@@ -16,34 +20,36 @@ public class UserService {
 
     private final UserStorage inMemoryUserStorage;
 
-    public User create(User user) {
+    public UserDto create(User user) {
         if (isNoSpaceInLogin(user)) {
             ifUserNameBlank(user);
             log.trace("Пользователь отправлен в хранилище");
-            return inMemoryUserStorage.create(user);
+            return UserMapper.mapToUserDto(inMemoryUserStorage.create(user));
         }
         log.trace("Пользователь не создан");
         return null;
     }
 
-    public User update(User user) {
+    public UserDto update(User user) {
         if (isNoSpaceInLogin(user)) {
             ifUserNameBlank(user);
             log.trace("Пользователь отправлен в хранилище а обновление");
-            return inMemoryUserStorage.update(user);
+            return UserMapper.mapToUserDto(inMemoryUserStorage.update(user));
         }
         log.trace("Пользователь не обновлен");
         return null;
     }
 
-    public User delete(Long userId) {
+    public UserDto delete(Long userId) {
         log.trace("Запрос отправлен на удаление пользователя в хранилище");
-        return inMemoryUserStorage.delete(userId);
+        return UserMapper.mapToUserDto(inMemoryUserStorage.delete(userId));
     }
 
-    public List<User> getAll() {
+    public List<UserDto> getAll() {
         log.debug("Отправляем запрос на возврат всех пользователей из хранилища");
-        return inMemoryUserStorage.getAll();
+        return inMemoryUserStorage.getAll().stream()
+                .map(UserMapper::mapToUserDto)
+                .toList();
     }
 
     private boolean isNoSpaceInLogin(User user) {
@@ -75,24 +81,49 @@ public class UserService {
     //Ниже прописана логика по работе с друзьями
 
     public Long addToFriends(Long userId, Long friendId) {
+        validationOfUser(userId);
+        validationOfUser(friendId);
         log.trace("Начинаем добавление друзей пользователя в хранилище друзей");
+        ifUserIdSameAsFriendId(userId, friendId);
         inMemoryUserStorage.addToFriends(userId, friendId);
         return userId;
     }
 
     public Long removeFromFriends(Long userId, Long friendId) {
+        validationOfUser(userId);
+        validationOfUser(friendId);
         log.trace("Начинаем удаление друга пользователя в хранилище друзей");
+        ifUserIdSameAsFriendId(userId, friendId);
         inMemoryUserStorage.removeFromFriends(userId, friendId);
         return userId;
     }
 
-    public List<User> getFriendsListOfUser(Long userId) {
+    public List<UserDto> getFriendsListOfUser(Long userId) {
+        validationOfUser(userId);
         log.trace("Начинаем возврат списка друзей пользователя");
-        return inMemoryUserStorage.getFriendsListOfUser(userId);
+        return inMemoryUserStorage.getFriendsListOfUser(userId).stream()
+                .map(UserMapper::mapToUserDto)
+                .toList();
     }
 
-    public List<User> getListOfCommonFriends(Long userId, Long otherId) {
+    public List<UserDto> getListOfCommonFriends(Long userId, Long otherId) {
+        validationOfUser(userId);
+        validationOfUser(otherId);
         log.trace("Начинаем возврат общего с другим пользователем списка друзей");
-        return inMemoryUserStorage.getListOfCommonFriends(userId, otherId);
+        return inMemoryUserStorage.getListOfCommonFriends(userId, otherId).stream()
+                .map(UserMapper::mapToUserDto)
+                .toList();
+    }
+
+    private void ifUserIdSameAsFriendId(Long userId, Long friendId) {
+        if (userId.equals(friendId)) {
+            throw new ValidationException("Пользователь не может быть другом сам себе");
+        }
+    }
+
+    private void validationOfUser(Long userId) {
+        if (inMemoryUserStorage.getUserById(userId) == null) {
+            throw new DataNotFoundException("Пользователь с Id: " + userId + " не найден");
+        }
     }
 }

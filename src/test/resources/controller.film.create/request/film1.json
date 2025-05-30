@@ -2,5 +2,16 @@
   "name": "name1",
   "description": "discription1",
   "releaseDate": "2012-03-25",
-  "duration": 100
+  "duration": 100,
+  "mpa": {
+    "id": 1
+  },
+  "genres": [
+    {
+      "id": 1
+    },
+    {
+      "id": 2
+    }
+  ]
 }

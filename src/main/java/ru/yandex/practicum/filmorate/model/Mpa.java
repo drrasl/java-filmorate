@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Genres {
+public class Mpa {
 
     @NotNull
     Integer id;
