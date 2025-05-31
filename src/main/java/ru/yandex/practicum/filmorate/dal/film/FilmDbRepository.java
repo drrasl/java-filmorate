@@ -10,14 +10,15 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exceptions.DataNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmGenreCollection;
 import ru.yandex.practicum.filmorate.model.Genres;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -27,13 +28,16 @@ public class FilmDbRepository implements FilmStorage {
     protected final RowMapper<Film> mapper;
     protected final RowMapper<Genres> genreRowMapper;
     protected final RowMapper<Mpa> mpaRowMapper;
+    protected final RowMapper<FilmGenreCollection> filmGenreCollectionRowMapper;
 
     @Autowired
-    public FilmDbRepository(JdbcTemplate jdbc, RowMapper<Film> mapper, RowMapper<Genres> genreRowMapper, RowMapper<Mpa> mpaRowMapper) {
+    public FilmDbRepository(JdbcTemplate jdbc, RowMapper<Film> mapper, RowMapper<Genres> genreRowMapper, RowMapper<Mpa> mpaRowMapper,
+                            RowMapper<FilmGenreCollection> filmGenreCollectionRowMapper) {
         this.jdbc = jdbc;
         this.mapper = mapper;
         this.genreRowMapper = genreRowMapper;
         this.mpaRowMapper = mpaRowMapper;
+        this.filmGenreCollectionRowMapper = filmGenreCollectionRowMapper;
     }
 
     private static final String INSERT_QUERY = "INSERT INTO filmStorage(name, description, releaseDate, duration, rating_mpa_ID) " +
@@ -55,6 +59,9 @@ public class FilmDbRepository implements FilmStorage {
     private static final String DELETE_FILM_GENRES = "DELETE FROM filmGenres WHERE film_ID = ?";
     private static final String GET_MPA_NAME_BY_FILM_ID = "SELECT r.* FROM ratingOfFilmByMpa AS r JOIN " +
             "filmStorage AS f ON r.rating_mpa_ID = f.rating_mpa_ID WHERE f.film_ID = ?";
+    private static final String FIND_ALL_FILM_GENRE_COLLECTION = "SELECT * FROM filmGenres";
+    private static final String FIND_ALL_MPA = "SELECT * FROM ratingOfFilmByMpa";
+    private static final String FIND_ALL_GENRES = "SELECT * FROM genres";
 
     @Transactional
     @Override
@@ -108,9 +115,35 @@ public class FilmDbRepository implements FilmStorage {
     public List<Film> getAll() {
         log.debug("Возвращаем все фильмы из хранилища");
         List<Film> films = jdbc.query(FIND_ALL_QUERY, mapper);
-        return films.stream()
-                .map(film -> getCompleteFilm(film.getId()))
-                .collect(Collectors.toList());
+        List<Genres> genres = jdbc.query(FIND_ALL_GENRES, genreRowMapper);
+        List<FilmGenreCollection> filmGenreCollections = jdbc.query(FIND_ALL_FILM_GENRE_COLLECTION, filmGenreCollectionRowMapper);
+        List<Mpa> mpas = jdbc.query(FIND_ALL_MPA, mpaRowMapper);
+
+        List<Film> completeFilms = new ArrayList<>();
+
+        for (Film film : films) {
+            List<Integer> idOfGenresOfEachFilm = new ArrayList<>();
+            List<Genres> genresOfEachFilm = new ArrayList<>();
+            Long id = film.getId();
+            List<FilmGenreCollection> genresById = filmGenreCollections.stream()
+                    .filter(item -> id == item.getFilmId()).toList();
+            for (FilmGenreCollection item : genresById) {
+                idOfGenresOfEachFilm.add(item.getGenreId());
+            }
+            genresOfEachFilm = idOfGenresOfEachFilm.stream().map(genreId -> new Genres(genreId,
+                    genres.stream().filter(item -> item.getId() == genreId)
+                            .map(Genres::getName).findFirst().orElse(null)
+            )).toList();
+            film.setGenres(genresOfEachFilm);
+            Mpa mpaOfFilm = new Mpa();
+            mpaOfFilm.setId(film.getMpa().getId());
+            mpaOfFilm.setName(mpas.stream().filter(mpa -> mpa.getId() == film.getMpa().getId())
+                    .findFirst()
+                    .map(mpa -> mpa.getName())
+                    .orElse(null));
+            completeFilms.add(film);
+        }
+        return completeFilms;
     }
 
     //Метод очистки хранилища для целей тестирования

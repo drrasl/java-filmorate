@@ -18,13 +18,13 @@ import java.util.List;
 @Service
 public class UserService {
 
-    private final UserStorage inMemoryUserStorage;
+    private final UserStorage userDbRepo;
 
     public UserDto create(User user) {
         if (isNoSpaceInLogin(user)) {
             ifUserNameBlank(user);
             log.trace("Пользователь отправлен в хранилище");
-            return UserMapper.mapToUserDto(inMemoryUserStorage.create(user));
+            return UserMapper.mapToUserDto(userDbRepo.create(user));
         }
         log.trace("Пользователь не создан");
         return null;
@@ -34,7 +34,7 @@ public class UserService {
         if (isNoSpaceInLogin(user)) {
             ifUserNameBlank(user);
             log.trace("Пользователь отправлен в хранилище а обновление");
-            return UserMapper.mapToUserDto(inMemoryUserStorage.update(user));
+            return UserMapper.mapToUserDto(userDbRepo.update(user));
         }
         log.trace("Пользователь не обновлен");
         return null;
@@ -42,12 +42,12 @@ public class UserService {
 
     public UserDto delete(Long userId) {
         log.trace("Запрос отправлен на удаление пользователя в хранилище");
-        return UserMapper.mapToUserDto(inMemoryUserStorage.delete(userId));
+        return UserMapper.mapToUserDto(userDbRepo.delete(userId));
     }
 
     public List<UserDto> getAll() {
         log.debug("Отправляем запрос на возврат всех пользователей из хранилища");
-        return inMemoryUserStorage.getAll().stream()
+        return userDbRepo.getAll().stream()
                 .map(UserMapper::mapToUserDto)
                 .toList();
     }
@@ -75,33 +75,33 @@ public class UserService {
     //Метод очистки хранилища для целей тестирования
     public void clear() {
         log.trace("Запрошен доступ для очистки хранилища пользователей для целей Тестирования");
-        inMemoryUserStorage.clear();
+        userDbRepo.clear();
     }
 
     //Ниже прописана логика по работе с друзьями
 
     public Long addToFriends(Long userId, Long friendId) {
+        ifUserIdSameAsFriendId(userId, friendId);
         validationOfUser(userId);
         validationOfUser(friendId);
         log.trace("Начинаем добавление друзей пользователя в хранилище друзей");
-        ifUserIdSameAsFriendId(userId, friendId);
-        inMemoryUserStorage.addToFriends(userId, friendId);
+        userDbRepo.addToFriends(userId, friendId);
         return userId;
     }
 
     public Long removeFromFriends(Long userId, Long friendId) {
+        ifUserIdSameAsFriendId(userId, friendId);
         validationOfUser(userId);
         validationOfUser(friendId);
         log.trace("Начинаем удаление друга пользователя в хранилище друзей");
-        ifUserIdSameAsFriendId(userId, friendId);
-        inMemoryUserStorage.removeFromFriends(userId, friendId);
+        userDbRepo.removeFromFriends(userId, friendId);
         return userId;
     }
 
     public List<UserDto> getFriendsListOfUser(Long userId) {
         validationOfUser(userId);
         log.trace("Начинаем возврат списка друзей пользователя");
-        return inMemoryUserStorage.getFriendsListOfUser(userId).stream()
+        return userDbRepo.getFriendsListOfUser(userId).stream()
                 .map(UserMapper::mapToUserDto)
                 .toList();
     }
@@ -110,7 +110,7 @@ public class UserService {
         validationOfUser(userId);
         validationOfUser(otherId);
         log.trace("Начинаем возврат общего с другим пользователем списка друзей");
-        return inMemoryUserStorage.getListOfCommonFriends(userId, otherId).stream()
+        return userDbRepo.getListOfCommonFriends(userId, otherId).stream()
                 .map(UserMapper::mapToUserDto)
                 .toList();
     }
@@ -122,7 +122,7 @@ public class UserService {
     }
 
     private void validationOfUser(Long userId) {
-        if (inMemoryUserStorage.getUserById(userId) == null) {
+        if (userDbRepo.getUserById(userId) == null) {
             throw new DataNotFoundException("Пользователь с Id: " + userId + " не найден");
         }
     }

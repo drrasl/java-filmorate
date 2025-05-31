@@ -19,8 +19,8 @@ import java.util.List;
 @Service
 public class FilmService {
 
-    private final FilmStorage inMemoryFilmStorage;
-    private final UserStorage inMemoryUserStorage;
+    private final FilmStorage filmDbRepo;
+    private final UserStorage userDbRepo;
     private final GenreService genreService;
     private final MpaService mpaService;
     private final LocalDate cinemaBirthday = LocalDate.of(1895, 12, 28);
@@ -29,7 +29,7 @@ public class FilmService {
         if (isItAfterCinemaBirthday(film)) {
             validationOfMpaAndGenre(film);
             log.trace("Фильм отправлен в хранилище");
-            return FilmMapper.mapToFilmDto(inMemoryFilmStorage.create(film));
+            return FilmMapper.mapToFilmDto(filmDbRepo.create(film));
         }
         log.trace("Фильм не создан");
         return null;
@@ -39,7 +39,7 @@ public class FilmService {
         if (isItAfterCinemaBirthday(film)) {
             validationOfMpaAndGenre(film);
             log.trace("Фильм отправлен на обновление в хранилище");
-            return FilmMapper.mapToFilmDto(inMemoryFilmStorage.update(film));
+            return FilmMapper.mapToFilmDto(filmDbRepo.update(film));
         }
         log.trace("Фильм не обновлен");
         return null;
@@ -47,17 +47,17 @@ public class FilmService {
 
     public FilmDto getFilmById(Long filmId) {
         log.debug("Отправим запрос на возврат фильма с filmId = {}", filmId);
-        return FilmMapper.mapToFilmDto(inMemoryFilmStorage.getFilmById(filmId));
+        return FilmMapper.mapToFilmDto(filmDbRepo.getFilmById(filmId));
     }
 
     public FilmDto delete(Long filmId) {
         log.trace("Фильм отправлен на удаление в хранилище");
-        return FilmMapper.mapToFilmDto(inMemoryFilmStorage.delete(filmId));
+        return FilmMapper.mapToFilmDto(filmDbRepo.delete(filmId));
     }
 
     public List<FilmDto> getAll() {
         log.trace("Отправляем запрос на возврат всеx фильмов из хранилища");
-        return inMemoryFilmStorage.getAll().stream()
+        return filmDbRepo.getAll().stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
@@ -74,7 +74,7 @@ public class FilmService {
     //Метод очистки хранилища для целей тестирования
     public void clear() {
         log.trace("Запрос отправлен в хранилище для очистки хранилища фильмов для целей Тестирования");
-        inMemoryFilmStorage.clear();
+        filmDbRepo.clear();
     }
 
     //Ниже приведена логика работы с фильмами и лайками.
@@ -83,28 +83,28 @@ public class FilmService {
     public Long addLikeToFilm(Long filmId, Long userId) {
         validationOfFilmAndUser(filmId, userId);
         log.trace("Отправляем лайк для фильма в хранилище");
-        return inMemoryFilmStorage.addLikeToFilm(filmId, userId);
+        return filmDbRepo.addLikeToFilm(filmId, userId);
     }
 
     public Long removeLikeFromFilm(Long filmId, Long userId) {
         validationOfFilmAndUser(filmId, userId);
         log.trace("Отправляем лайк для его удаления из хранилища");
-        return inMemoryFilmStorage.removeLikeFromFilm(filmId, userId);
+        return filmDbRepo.removeLikeFromFilm(filmId, userId);
     }
 
     public List<FilmDto> getListOfPopularFilms(Integer count) {
         log.trace("Отправляем запрос на возврат count {} фильмов из хранилища, отсортированных по кол-ву лайков", count);
-        return inMemoryFilmStorage.getListOfPopularFilms(count).stream()
+        return filmDbRepo.getListOfPopularFilms(count).stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
 
     private void validationOfFilmAndUser(Long filmId, Long userId) {
-        if (inMemoryUserStorage.getUserById(userId) == null) {
+        if (userDbRepo.getUserById(userId) == null) {
             throw new DataNotFoundException("Пользователь с Id: " + userId + " не найден");
         }
         log.trace("Пользователь с Id {} есть в списке пользователей", userId);
-        if (inMemoryFilmStorage.getFilmById(filmId) == null) {
+        if (filmDbRepo.getFilmById(filmId) == null) {
             throw new DataNotFoundException("Фильм с Id: " + filmId + " не найден");
         }
         log.trace("Фильм с указанным Id {} есть в списке фильмов", filmId);

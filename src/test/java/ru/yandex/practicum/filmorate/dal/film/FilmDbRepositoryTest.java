@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.yandex.practicum.filmorate.dal.film.mapper.FilmGenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.film.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.film.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.film.mapper.MpaRowMapper;
@@ -29,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({FilmDbRepository.class, FilmRowMapper.class, GenreRowMapper.class, MpaRowMapper.class, UserDbRepository.class, UserRowMapper.class})
+@Import({FilmDbRepository.class, FilmRowMapper.class, GenreRowMapper.class, MpaRowMapper.class, FilmGenreRowMapper.class, UserDbRepository.class, UserRowMapper.class})
 class FilmDbRepositoryTest {
     private final FilmDbRepository filmDbRepository;
     private final UserDbRepository userDbRepository;
