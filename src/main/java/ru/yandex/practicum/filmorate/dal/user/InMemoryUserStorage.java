@@ -1,7 +1,6 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.dal.user;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -10,7 +9,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Component
+//@Component
+@Deprecated
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> userStorage = new HashMap<>();

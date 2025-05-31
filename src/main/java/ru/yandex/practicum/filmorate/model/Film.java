@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Film.
@@ -29,7 +31,8 @@ public class Film {
     @Positive
     private Long duration;
 
-    // Скрыл, иначе падают тесты. Скорее всего в следующем спринте будем дорабатывать классы
-//    @NotNull
-//    private Integer ratingOfFilmByMpaId;
+    @NotNull
+    private Mpa mpa = new Mpa();
+
+    private List<Genres> genres = new ArrayList<>();
 }
