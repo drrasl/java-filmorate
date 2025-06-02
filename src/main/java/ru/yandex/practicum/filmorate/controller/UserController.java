@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
@@ -20,25 +21,25 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
+    public UserDto create(@Valid @RequestBody User user) {
         log.debug("Начато создание объекта пользователя. Получен объект {}", user);
         return userService.create(user);
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User user) {
+    public UserDto update(@Valid @RequestBody User user) {
         log.debug("Начато обновление объекта пользователя. Получен объект {}", user);
         return userService.update(user);
     }
 
     @DeleteMapping("/{userId}")
-    public User delete(@PathVariable @Positive Long userId) {
+    public UserDto delete(@PathVariable @Positive Long userId) {
         log.debug("Начато удаление пользователя с userId = {}", userId);
         return userService.delete(userId);
     }
 
     @GetMapping
-    public List<User> getAll() {
+    public List<UserDto> getAll() {
         log.debug("Начат возврат всех пользователей");
         return userService.getAll();
     }
@@ -66,14 +67,14 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriendsListOfUser(@NotNull @Positive @PathVariable("id") Long userId) {
+    public List<UserDto> getFriendsListOfUser(@NotNull @Positive @PathVariable("id") Long userId) {
         log.debug("Начат возврат всех друзей пользователя с ID {}", userId);
         return userService.getFriendsListOfUser(userId);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getListOfCommonFriends(@NotNull @Positive @PathVariable("id") Long userId,
-                                             @NotNull @Positive @PathVariable Long otherId) {
+    public List<UserDto> getListOfCommonFriends(@NotNull @Positive @PathVariable("id") Long userId,
+                                                @NotNull @Positive @PathVariable Long otherId) {
         log.debug("Начат возврат всех общих друзей пользователя с ID {} и другого пользователя с ID {}", userId, otherId);
         return userService.getListOfCommonFriends(userId, otherId);
     }

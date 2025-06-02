@@ -1,6 +1,21 @@
 {
+  "id": 3,
   "name": "nisi eiusmod",
   "description": "adipisicing",
-  "releaseDate": "1967-03-25",
-  "duration": 100
+  "releaseDate": "1997-03-25",
+  "duration": 100,
+  "mpa": {
+    "id": 1,
+    "name": "G"
+  },
+  "genres": [
+    {
+      "id": 1,
+      "name": "Комедия"
+    },
+    {
+      "id": 2,
+      "name": "Драма"
+    }
+  ]
 }
